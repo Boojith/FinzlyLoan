@@ -1,2 +1,2 @@
 # FinzlyLoan
-Backend of the load management application
+Backend of the loan management application
