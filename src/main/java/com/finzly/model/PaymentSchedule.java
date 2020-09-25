@@ -2,6 +2,8 @@ package com.finzly.model;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
@@ -10,7 +12,8 @@ import javax.persistence.Table;
 public class PaymentSchedule {
 	@Id
 	@Column
-	private String paymentId;
+	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	private int paymentId;
 	@Column
 	private String loanId;
 	@Column

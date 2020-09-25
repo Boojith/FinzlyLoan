@@ -7,7 +7,7 @@ import javax.persistence.Table;
 
 @Entity
 @Table
-public class Loan {
+public class Loan implements Cloneable{
 	@Id
 	@Column
 	private String loanId;
@@ -131,4 +131,9 @@ public class Loan {
 	public void setProjectedInterest(int projectedInterest) {
 		this.projectedInterest = projectedInterest;
 	}
+	
+	public Object clone() throws CloneNotSupportedException
+    {
+        return super.clone();
+    }
 }

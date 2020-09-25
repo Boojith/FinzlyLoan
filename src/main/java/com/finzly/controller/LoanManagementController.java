@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.finzly.model.Customer;
@@ -36,7 +37,14 @@ public class LoanManagementController {
 	private Customer getCustomerDetails(@PathVariable("customerId") String customerId) {
 		return loanManagementService.getCustomerDetails(customerId);
 	}
-
+	
+	
+	@GetMapping("/verify-customer")
+	private Customer verifyCustomer(@RequestParam("email") String email,@RequestParam("password") String password) {
+		return loanManagementService.getCustomerDetails(email,password);
+	}
+	
+	
 	/**
 	 * Creating a post mapping that save the details of particular customer
 	 * 
@@ -45,9 +53,10 @@ public class LoanManagementController {
 	 */
 	@PostMapping("/add-customer")
 	private Customer saveCustomer(@RequestBody Customer customer) {
-		System.out.println("Save Customer");
 		return loanManagementService.saveCustomerDetails(customer);
 	}
+	
+	
 
 	/**
 	 * Creating a get mapping that retrieves the loans of particular customer
@@ -81,7 +90,6 @@ public class LoanManagementController {
 	 */
 	@PostMapping("/loan")
 	private Loan saveLoan(@RequestBody Loan loan) {
-		System.out.println("Save Loan");
 		return loanManagementService.saveLoan(loan);
 
 	}
