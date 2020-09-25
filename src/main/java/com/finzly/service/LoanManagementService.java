@@ -4,8 +4,6 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -39,11 +37,12 @@ public class LoanManagementService {
 	public Customer getCustomerDetails(String customerId) {
 		return customerRepository.findById(customerId).get();
 	}
+
 	public Customer getCustomerDetails(String email, String password) {
-		 List<Customer> customerList = customerRepository.findByEmailAndPassword(email, password);
-		 if(customerList.isEmpty()) {
-			 return new Customer();
-		 }
+		List<Customer> customerList = customerRepository.findByEmailAndPassword(email, password);
+		if (customerList.isEmpty()) {
+			return new Customer();
+		}
 		return customerRepository.findByEmailAndPassword(email, password).get(0);
 	}
 
@@ -63,12 +62,12 @@ public class LoanManagementService {
 		return paymentScheduleList;
 	}
 
-	public Loan saveLoan(Loan loan)  {
+	public Loan saveLoan(Loan loan) {
 		loan.setInterestRate(10);
 		String s = String.valueOf(System.currentTimeMillis());
 		loan.setLoanId("FINZ" + s.substring(5, s.length()));
 		try {
-			createPaymentSchedule((Loan)loan.clone());
+			createPaymentSchedule((Loan) loan.clone());
 		} catch (CloneNotSupportedException e) {
 			e.printStackTrace();
 		}
@@ -81,8 +80,24 @@ public class LoanManagementService {
 		if (paymentTerm.equals("Interest Only")) {
 			createInterestOnlySchedule(loan);
 		} else if (paymentTerm.equals("Even Principal")) {
-
+			createEvenPrincipalSchedule(loan);
 		}
+	}
+
+	private void createEvenPrincipalSchedule(Loan loan) {
+		List<PaymentSchedule> paymentScheduleList = new ArrayList<PaymentSchedule>();
+		int interest = loan.getProjectedInterest() / loan.getPaymentSchedule();
+		for (int i = 0; i < loan.getPaymentSchedule(); i++) {
+			PaymentSchedule paymentSchedule = new PaymentSchedule();
+			paymentSchedule.setLoanId(loan.getLoanId());
+			paymentSchedule.setPaymentDate(calculatePaymentDate(loan, loan.getPaymentFrequency()));
+			paymentSchedule.setPrincipal(loan.getLoanAmount());
+			paymentSchedule.setPaymentStatus("AWAITINGPAYMENT");
+			paymentSchedule.setPaymentAmount(interest);
+			paymentSchedule.setProjectedInterest(calculateProjectedInterest(loan));
+			paymentScheduleList.add(paymentSchedule);
+		}
+		paymentScheduleRepository.saveAll(paymentScheduleList);
 	}
 
 	private void createInterestOnlySchedule(Loan loan) {
@@ -93,7 +108,7 @@ public class LoanManagementService {
 			paymentSchedule.setLoanId(loan.getLoanId());
 			paymentSchedule.setPaymentDate(calculatePaymentDate(loan, loan.getPaymentFrequency()));
 			paymentSchedule.setPrincipal(0);
-			paymentSchedule.setPaymentStatus("PROJECTED");
+			paymentSchedule.setPaymentStatus("AWAITINGPAYMENT");
 			paymentSchedule.setPaymentAmount(interest);
 			paymentSchedule.setProjectedInterest(calculateProjectedInterest(loan));
 			paymentScheduleList.add(paymentSchedule);
@@ -103,10 +118,10 @@ public class LoanManagementService {
 
 	private float calculateProjectedInterest(Loan loan) {
 		int paymentSchedule = loan.getPaymentSchedule();
-		int principal=loan.getLoanAmount();
+		int principal = loan.getLoanAmount();
 		int years = loan.getLoanDuration();
 		float interestRate = loan.getInterestRate();
-		int interestAmount =(int) ((principal * years  * interestRate) / 100)/(paymentSchedule*12);
+		int interestAmount = (int) ((principal * years * interestRate) / 100) / (paymentSchedule * 12);
 		principal = principal - (principal / loan.getPaymentSchedule());
 		loan.setLoanAmount(principal);
 		return interestAmount;
@@ -114,7 +129,7 @@ public class LoanManagementService {
 
 	private String calculatePaymentDate(Loan loan, String paymentFrequency) {
 		String paymentDate = null;
-		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+		SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
 		Date date = null;
 		try {
 			date = formatter.parse(loan.getStartDate());
@@ -122,39 +137,48 @@ public class LoanManagementService {
 			e.printStackTrace();
 		}
 
-		Calendar now = Calendar.getInstance();
-		now.setTime(date);
+		Calendar paymentDateCalenar = Calendar.getInstance();
+		paymentDateCalenar.setTime(date);
 		switch (paymentFrequency) {
 		case "Monthly": {
-			now.add(Calendar.MONTH, 1);
-			paymentDate = "" + now.get(Calendar.DATE) + "-" + (now.get(Calendar.MONTH) + 1) + "-"
-					+ now.get(Calendar.YEAR);
+			paymentDateCalenar.add(Calendar.MONTH, 1);
+			paymentDate = "" + paymentDateCalenar.get(Calendar.DATE) + "-"
+					+ (paymentDateCalenar.get(Calendar.MONTH) + 1) + "-" + paymentDateCalenar.get(Calendar.YEAR);
 			break;
 		}
 		case "Quarterly": {
-			now.add(Calendar.MONTH, 3);
-			paymentDate = "" + now.get(Calendar.DATE) + "-" + (now.get(Calendar.MONTH) + 1) + "-"
-					+ now.get(Calendar.YEAR);
+			paymentDateCalenar.add(Calendar.MONTH, 3);
+			paymentDate = "" + paymentDateCalenar.get(Calendar.DATE) + "-"
+					+ (paymentDateCalenar.get(Calendar.MONTH) + 1) + "-" + paymentDateCalenar.get(Calendar.YEAR);
 			break;
 		}
 		case "Half Yearly": {
-			now.add(Calendar.MONTH, 6);
-			paymentDate = "" + now.get(Calendar.DATE) + "-" + (now.get(Calendar.MONTH) + 1) + "-"
-					+ now.get(Calendar.YEAR);
+			paymentDateCalenar.add(Calendar.MONTH, 6);
+			paymentDate = "" + paymentDateCalenar.get(Calendar.DATE) + "-"
+					+ (paymentDateCalenar.get(Calendar.MONTH) + 1) + "-" + paymentDateCalenar.get(Calendar.YEAR);
 			break;
 		}
 		case "Yearly": {
-			now.add(Calendar.MONTH, 12);
-			paymentDate = "" + now.get(Calendar.DATE) + "-" + (now.get(Calendar.MONTH) + 1) + "-"
-					+ now.get(Calendar.YEAR);
+			paymentDateCalenar.add(Calendar.MONTH, 12);
+			paymentDate = "" + paymentDateCalenar.get(Calendar.DATE) + "-"
+					+ (paymentDateCalenar.get(Calendar.MONTH) + 1) + "-" + paymentDateCalenar.get(Calendar.YEAR);
 			break;
 		}
 
 		}
-		loan.setStartDate(""+now.get(Calendar.YEAR)+ "-" + (now.get(Calendar.MONTH) + 1) + "-"+ now.get(Calendar.DATE));
+		paymentDate=convertDateFormat(paymentDate);
+		loan.setStartDate(paymentDate);
 		return paymentDate;
 	}
 
-
+	private String convertDateFormat(String paymentDate) {
+		if (paymentDate.charAt(1) == '-') {
+			paymentDate = "0" + paymentDate;
+		}
+		if (paymentDate.charAt(4) == '-') {
+			paymentDate = paymentDate.substring(0,3) + "0" + paymentDate.substring(3);
+		}
+		return paymentDate;
+	}
 
 }
