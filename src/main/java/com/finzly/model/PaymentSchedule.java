@@ -24,7 +24,7 @@ public class PaymentSchedule {
 	@Column
 	private String paymentStatus;
 	@Column
-	private int paymentAmount;
+	private float paymentAmount;
 
 	public String getPaymentId() {
 		return paymentId;
@@ -74,11 +74,11 @@ public class PaymentSchedule {
 		this.paymentStatus = paymentStatus;
 	}
 
-	public int getPaymentAmount() {
+	public float getPaymentAmount() {
 		return paymentAmount;
 	}
 
-	public void setPaymentAmount(int paymentAmount) {
+	public void setPaymentAmount(float paymentAmount) {
 		this.paymentAmount = paymentAmount;
 	}
 

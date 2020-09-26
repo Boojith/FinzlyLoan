@@ -7,6 +7,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,6 +92,7 @@ public class LoanManagementService {
 	 * @return List<PaymentSchedule>
 	 */
 	public List<PaymentSchedule> getPaymentScheduleByLoanId(String loanId) {
+		logger.info("Getting Payment Schedule for Loan{}", loanId);
 		return paymentScheduleRepository.findByLoanId(loanId);
 	}
 
@@ -152,16 +154,16 @@ public class LoanManagementService {
 	 */
 	private void createEvenPrincipalSchedule(Loan loan) {
 		List<PaymentSchedule> paymentScheduleList = new ArrayList<PaymentSchedule>();
-		int interest = loan.getProjectedInterest() / loan.getPaymentSchedule();
-		for (int i = 0; i < loan.getPaymentSchedule(); i++) {
+		int perPaymentPrincipal = loan.getLoanAmount() / loan.getPaymentSchedule();
+		for (int i = 1; i <= loan.getPaymentSchedule(); i++) {
 			PaymentSchedule paymentSchedule = new PaymentSchedule();
 			paymentSchedule.setPaymentId(generateKey("PAY"));
 			paymentSchedule.setLoanId(loan.getLoanId());
 			paymentSchedule.setPaymentDate(calculatePaymentDate(loan, loan.getPaymentFrequency()));
 			paymentSchedule.setPrincipal(loan.getLoanAmount());
-			paymentSchedule.setPaymentStatus("AWAITINGPAYMENT");
-			paymentSchedule.setPaymentAmount(interest);
-			paymentSchedule.setProjectedInterest(calculateProjectedInterest(loan));
+			paymentSchedule.setProjectedInterest(calculateInterest(loan,perPaymentPrincipal));
+			paymentSchedule.setPaymentStatus("PROJECTED");
+			paymentSchedule.setPaymentAmount(paymentSchedule.getProjectedInterest()+perPaymentPrincipal);
 			paymentScheduleList.add(paymentSchedule);
 		}
 		logger.info("Creating Even Principal Schedule for Loan {}", loan);
@@ -175,16 +177,22 @@ public class LoanManagementService {
 	 */
 	private void createInterestOnlySchedule(Loan loan) {
 		List<PaymentSchedule> paymentScheduleList = new ArrayList<PaymentSchedule>();
-		int interest = loan.getProjectedInterest() / loan.getPaymentSchedule();
-		for (int i = 0; i < loan.getPaymentSchedule(); i++) {
+		int netPrincipal = loan.getLoanAmount();
+		int perPaymentPrincipal = loan.getLoanAmount() / loan.getPaymentSchedule();
+		for (int i = 1; i <= loan.getPaymentSchedule(); i++) {
 			PaymentSchedule paymentSchedule = new PaymentSchedule();
 			paymentSchedule.setPaymentId(generateKey("PAY"));
 			paymentSchedule.setLoanId(loan.getLoanId());
 			paymentSchedule.setPaymentDate(calculatePaymentDate(loan, loan.getPaymentFrequency()));
-			paymentSchedule.setPrincipal(0);
-			paymentSchedule.setPaymentStatus("AWAITINGPAYMENT");
-			paymentSchedule.setPaymentAmount(interest);
-			paymentSchedule.setProjectedInterest(calculateProjectedInterest(loan));
+			paymentSchedule.setProjectedInterest(calculateInterest(loan,perPaymentPrincipal));
+			if(i==loan.getPaymentSchedule()) {
+				paymentSchedule.setPrincipal(netPrincipal);
+				paymentSchedule.setPaymentAmount((paymentSchedule.getProjectedInterest())+(netPrincipal));
+			}else {
+				paymentSchedule.setPrincipal(0);
+				paymentSchedule.setPaymentAmount(paymentSchedule.getProjectedInterest());
+			}
+			paymentSchedule.setPaymentStatus("PROJECTED");
 			paymentScheduleList.add(paymentSchedule);
 		}
 		logger.info("Creating Interest Only  Schedule for Loan {}", loan);
@@ -195,16 +203,18 @@ public class LoanManagementService {
 	 * This method is used to calculate the projected Interest based on schedule
 	 * 
 	 * @param loan
+	 * @param perPaymentPrincipal 
 	 * @return interestAmount
 	 */
-	private float calculateProjectedInterest(Loan loan) {
-		int paymentSchedule = loan.getPaymentSchedule();
-		int principal = loan.getLoanAmount();
-		int years = loan.getLoanDuration();
+	private float calculateInterest(Loan loan, int perPaymentPrincipal) {
+		float paymentSchedule = loan.getPaymentSchedule();
+		float principal = loan.getLoanAmount();
+		float years = loan.getLoanDuration();
 		float interestRate = loan.getInterestRate();
-		int interestAmount = (int) ((principal * years * interestRate) / 100) / (paymentSchedule * 12);
-		principal = principal - (principal / loan.getPaymentSchedule());
-		loan.setLoanAmount(principal);
+//		int interestAmount = (int) ((principal * years * interestRate) / 100) / (paymentSchedule * 12);
+		int interestAmount =(int) ((principal * (years / paymentSchedule) * interestRate) / 100);
+		principal = principal - perPaymentPrincipal;
+		loan.setLoanAmount((int)principal);
 		return interestAmount;
 	}
 
@@ -277,8 +287,9 @@ public class LoanManagementService {
 	}
 	
 	private String generateKey(String prefix) {
-		String key = String.valueOf(System.currentTimeMillis());
-		return prefix+ key.substring(5, key.length());
+//		String key = String.valueOf(System.currentTimeMillis());
+		String key = UUID.randomUUID().toString().split("-")[0];
+		return prefix+ key;
 	}
 
 }

@@ -86,17 +86,21 @@ public class LoanManagementController {
 		return loanManagementService.getPaymentScheduleByLoanId(loanId);
 	}
 
+	/**
+	 * Used to Update Payment Status
+	 * @param paymentId
+	 * @return  PaymentSchedule
+	 */
 	@PutMapping("/update-payment/{paymentId}")
 	private PaymentSchedule updatePaymentStatus(@PathVariable("paymentId") String paymentId) {
 		return loanManagementService.updatePaymentStatus(paymentId);
 	}
 
 	/**
-	 * creating post mapping that post the loan detail of a customer in the database
+	 * Creating post mapping that post the loan detail of a customer in the database
 	 * 
 	 * @param loan
-	 * @return
-	 * @return
+	 * @return Loan
 	 */
 	@PostMapping("/loan")
 	private Loan saveLoan(@RequestBody Loan loan) {
