@@ -9,8 +9,8 @@ INSERT INTO  loan (loan_id,customer_id,loan_amount,trade_date,start_date,maturit
   ('FINZ03907852', 'CUS03950388', 8000, '31-12-2006','31-12-2006','31-12-2008',12,'Half Yearly',14 ,9.5, 'Even Principal', 475);
 
  INSERT INTO payment_schedule (payment_id,loan_id,payment_date,principal,projected_interest,payment_status,payment_amount) VALUES
-  (1,'FINZ03842499', '21-12-1996', 2000, 120,'PAID',2100),
-  (2,'FINZ03842499', '21-03-1997', 1000, 100,' PROJECTED',1100),
-  (3,'FINZ03907852', '21-03-1997', 1000, 100,' PROJECTED',1100),
-  (4,'FINZ03907852', '21-03-1997', 1000, 100,' PROJECTED',1100);
+  ('PAYZ03872596','FINZ03842499', '21-12-1996', 2000, 120,'PAID',2100),
+  ('PAYZ03872570','FINZ03842499', '21-03-1997', 1000, 100,'PROJECTED',1100),
+  ('PAYZ03872556','FINZ03907852', '21-03-1997', 1000, 100,'PROJECTED',1100),
+  ('PAYZ03872426','FINZ03907852', '21-03-1997', 1000, 100,'PROJECTED',1100);
   

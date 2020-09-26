@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -37,14 +38,20 @@ public class LoanManagementController {
 	private Customer getCustomerDetails(@PathVariable("customerId") String customerId) {
 		return loanManagementService.getCustomerDetails(customerId);
 	}
-	
-	
+
+	/**
+	 * Creating a get mapping that verify the existing customer details of
+	 * particular customer
+	 * 
+	 * @param email
+	 * @param password
+	 * @return Customer
+	 */
 	@GetMapping("/verify-customer")
-	private Customer verifyCustomer(@RequestParam("email") String email,@RequestParam("password") String password) {
-		return loanManagementService.getCustomerDetails(email,password);
+	private Customer verifyCustomer(@RequestParam("email") String email, @RequestParam("password") String password) {
+		return loanManagementService.getCustomerDetails(email, password);
 	}
-	
-	
+
 	/**
 	 * Creating a post mapping that save the details of particular customer
 	 * 
@@ -55,8 +62,6 @@ public class LoanManagementController {
 	private Customer saveCustomer(@RequestBody Customer customer) {
 		return loanManagementService.saveCustomerDetails(customer);
 	}
-	
-	
 
 	/**
 	 * Creating a get mapping that retrieves the loans of particular customer
@@ -76,22 +81,26 @@ public class LoanManagementController {
 	 * @param loanId
 	 * @return List<PaymentSchedule>
 	 */
-	@GetMapping("/loan/paymentSchedule/{loanId}")
+	@GetMapping("/loan/payment-schedule/{loanId}")
 	private List<PaymentSchedule> getPaymentSchedule(@PathVariable("loanId") String loanId) {
 		return loanManagementService.getPaymentScheduleByLoanId(loanId);
+	}
+
+	@PutMapping("/update-payment/{paymentId}")
+	private PaymentSchedule updatePaymentStatus(@PathVariable("paymentId") String paymentId) {
+		return loanManagementService.updatePaymentStatus(paymentId);
 	}
 
 	/**
 	 * creating post mapping that post the loan detail of a customer in the database
 	 * 
 	 * @param loan
-	 * @return 
+	 * @return
 	 * @return
 	 */
 	@PostMapping("/loan")
 	private Loan saveLoan(@RequestBody Loan loan) {
 		return loanManagementService.saveLoan(loan);
-
 	}
 
 }

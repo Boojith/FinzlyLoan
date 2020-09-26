@@ -6,7 +6,10 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -28,53 +31,111 @@ public class LoanManagementService {
 	@Autowired
 	PaymentScheduleRepository paymentScheduleRepository;
 
+	private static final Logger logger = LoggerFactory.getLogger(LoanManagementService.class);
+
+	/**
+	 * saveCustomerDetails is used to add a new customer to DB
+	 * 
+	 * @param customer
+	 * @return Customer
+	 */
 	public Customer saveCustomerDetails(Customer customer) {
-		String s = String.valueOf(System.currentTimeMillis());
-		customer.setCustomerId("CUS" + s.substring(5, s.length()));
+		customer.setCustomerId(generateKey("CUS"));
 		return customerRepository.save(customer);
 	}
 
+	/**
+	 * getCustomerDetails is used to get details of a particular customer
+	 * 
+	 * @param customerId
+	 * @return Customer
+	 */
 	public Customer getCustomerDetails(String customerId) {
+		logger.info("Getting customer details for {}", customerId);
 		return customerRepository.findById(customerId).get();
 	}
 
+	/**
+	 * getCustomerDetails is used to verify existing customer
+	 * 
+	 * @param email
+	 * @param password
+	 * @return Customer
+	 */
 	public Customer getCustomerDetails(String email, String password) {
 		List<Customer> customerList = customerRepository.findByEmailAndPassword(email, password);
 		if (customerList.isEmpty()) {
 			return new Customer();
 		}
+		logger.info("Verifying existing customer details for {}", email);
 		return customerRepository.findByEmailAndPassword(email, password).get(0);
 	}
 
+	/**
+	 * getLoansByCustomerId is used to loans of a particular customer
+	 * 
+	 * @param customerId
+	 * @return List<Loan>
+	 */
 	public List<Loan> getLoansByCustomerId(String customerId) {
 		List<Loan> loans = new ArrayList<Loan>();
 		loanRepository.findByCustomerId(customerId).forEach(loan -> loans.add(loan));
+		logger.info("Getting loan details for existing customer {}", customerId);
 		return loans;
 	}
 
+	/**
+	 * getPaymentScheduleByLoanId is used to fetch PaymentSchedule of a loan
+	 * 
+	 * @param loanId
+	 * @return List<PaymentSchedule>
+	 */
 	public List<PaymentSchedule> getPaymentScheduleByLoanId(String loanId) {
-		List<PaymentSchedule> paymentScheduleList = new ArrayList<PaymentSchedule>();
-		paymentScheduleRepository.findAll().forEach(paymentSchedule -> {
-			if (paymentSchedule.getLoanId().equals(loanId)) {
-				paymentScheduleList.add(paymentSchedule);
-			}
-		});
-		return paymentScheduleList;
+		return paymentScheduleRepository.findByLoanId(loanId);
 	}
 
+	/**
+	 * updatePaymentStatus method is used to update payment status for a particular
+	 * loan
+	 * 
+	 * @param paymentId
+	 * @return PaymentSchedule
+	 */
+	public PaymentSchedule updatePaymentStatus(String paymentId) {
+		Optional<PaymentSchedule> paymentScheduleOptional = paymentScheduleRepository.findById(paymentId);
+		PaymentSchedule paymentSchedule = new PaymentSchedule();
+		if (paymentScheduleOptional.isPresent()) {
+			paymentSchedule = paymentScheduleOptional.get();
+			paymentSchedule.setPaymentStatus("PAID");
+		}
+		logger.info("Updating payment status for payment schedule {}", paymentId);
+		return paymentScheduleRepository.save(paymentSchedule);
+	}
+
+	/**
+	 * saveLoan is used to add a loan to DB
+	 * 
+	 * @param loan
+	 * @return Loan
+	 */
 	public Loan saveLoan(Loan loan) {
 		loan.setInterestRate(10);
-		String s = String.valueOf(System.currentTimeMillis());
-		loan.setLoanId("FINZ" + s.substring(5, s.length()));
+		loan.setLoanId(generateKey("FINZ"));
 		try {
 			createPaymentSchedule((Loan) loan.clone());
 		} catch (CloneNotSupportedException e) {
 			e.printStackTrace();
 		}
+		logger.info("New Loan {} created for the customer", loan);
 		return loanRepository.save(loan);
 
 	}
 
+	/**
+	 * createPaymentSchedule is used to create payment schedule based on PaymentTerm
+	 * 
+	 * @param loan
+	 */
 	private void createPaymentSchedule(Loan loan) {
 		String paymentTerm = loan.getPaymentTerm();
 		if (paymentTerm.equals("Interest Only")) {
@@ -84,11 +145,17 @@ public class LoanManagementService {
 		}
 	}
 
+	/**
+	 * This method is used to create Even Principal Schedule
+	 * 
+	 * @param loan
+	 */
 	private void createEvenPrincipalSchedule(Loan loan) {
 		List<PaymentSchedule> paymentScheduleList = new ArrayList<PaymentSchedule>();
 		int interest = loan.getProjectedInterest() / loan.getPaymentSchedule();
 		for (int i = 0; i < loan.getPaymentSchedule(); i++) {
 			PaymentSchedule paymentSchedule = new PaymentSchedule();
+			paymentSchedule.setPaymentId(generateKey("PAY"));
 			paymentSchedule.setLoanId(loan.getLoanId());
 			paymentSchedule.setPaymentDate(calculatePaymentDate(loan, loan.getPaymentFrequency()));
 			paymentSchedule.setPrincipal(loan.getLoanAmount());
@@ -97,14 +164,21 @@ public class LoanManagementService {
 			paymentSchedule.setProjectedInterest(calculateProjectedInterest(loan));
 			paymentScheduleList.add(paymentSchedule);
 		}
+		logger.info("Creating Even Principal Schedule for Loan {}", loan);
 		paymentScheduleRepository.saveAll(paymentScheduleList);
 	}
 
+	/**
+	 * This method is used to create Interest Only Schedule
+	 * 
+	 * @param loan
+	 */
 	private void createInterestOnlySchedule(Loan loan) {
 		List<PaymentSchedule> paymentScheduleList = new ArrayList<PaymentSchedule>();
 		int interest = loan.getProjectedInterest() / loan.getPaymentSchedule();
 		for (int i = 0; i < loan.getPaymentSchedule(); i++) {
 			PaymentSchedule paymentSchedule = new PaymentSchedule();
+			paymentSchedule.setPaymentId(generateKey("PAY"));
 			paymentSchedule.setLoanId(loan.getLoanId());
 			paymentSchedule.setPaymentDate(calculatePaymentDate(loan, loan.getPaymentFrequency()));
 			paymentSchedule.setPrincipal(0);
@@ -113,9 +187,16 @@ public class LoanManagementService {
 			paymentSchedule.setProjectedInterest(calculateProjectedInterest(loan));
 			paymentScheduleList.add(paymentSchedule);
 		}
+		logger.info("Creating Interest Only  Schedule for Loan {}", loan);
 		paymentScheduleRepository.saveAll(paymentScheduleList);
 	}
 
+	/**
+	 * This method is used to calculate the projected Interest based on schedule
+	 * 
+	 * @param loan
+	 * @return interestAmount
+	 */
 	private float calculateProjectedInterest(Loan loan) {
 		int paymentSchedule = loan.getPaymentSchedule();
 		int principal = loan.getLoanAmount();
@@ -127,6 +208,14 @@ public class LoanManagementService {
 		return interestAmount;
 	}
 
+	/**
+	 * calculatePaymentDate is used to calculate the Payment date based on the loan
+	 * duration
+	 * 
+	 * @param loan
+	 * @param paymentFrequency
+	 * @return paymentDate
+	 */
 	private String calculatePaymentDate(Loan loan, String paymentFrequency) {
 		String paymentDate = null;
 		SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
@@ -166,19 +255,30 @@ public class LoanManagementService {
 		}
 
 		}
-		paymentDate=convertDateFormat(paymentDate);
+		paymentDate = convertDateFormat(paymentDate);
 		loan.setStartDate(paymentDate);
 		return paymentDate;
 	}
 
+	/**
+	 * Used to convert paymentDate to corresponding date format
+	 * 
+	 * @param paymentDate
+	 * @return paymentDate
+	 */
 	private String convertDateFormat(String paymentDate) {
 		if (paymentDate.charAt(1) == '-') {
 			paymentDate = "0" + paymentDate;
 		}
 		if (paymentDate.charAt(4) == '-') {
-			paymentDate = paymentDate.substring(0,3) + "0" + paymentDate.substring(3);
+			paymentDate = paymentDate.substring(0, 3) + "0" + paymentDate.substring(3);
 		}
 		return paymentDate;
+	}
+	
+	private String generateKey(String prefix) {
+		String key = String.valueOf(System.currentTimeMillis());
+		return prefix+ key.substring(5, key.length());
 	}
 
 }

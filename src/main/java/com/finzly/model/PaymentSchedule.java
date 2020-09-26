@@ -12,8 +12,7 @@ import javax.persistence.Table;
 public class PaymentSchedule {
 	@Id
 	@Column
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
-	private int paymentId;
+	private String paymentId;
 	@Column
 	private String loanId;
 	@Column
@@ -26,6 +25,14 @@ public class PaymentSchedule {
 	private String paymentStatus;
 	@Column
 	private int paymentAmount;
+
+	public String getPaymentId() {
+		return paymentId;
+	}
+
+	public void setPaymentId(String paymentId) {
+		this.paymentId = paymentId;
+	}
 
 	public String getLoanId() {
 		return loanId;
