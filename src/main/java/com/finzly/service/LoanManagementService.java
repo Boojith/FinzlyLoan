@@ -211,7 +211,6 @@ public class LoanManagementService {
 		float principal = loan.getLoanAmount();
 		float years = loan.getLoanDuration();
 		float interestRate = loan.getInterestRate();
-//		int interestAmount = (int) ((principal * years * interestRate) / 100) / (paymentSchedule * 12);
 		int interestAmount =(int) ((principal * (years / paymentSchedule) * interestRate) / 100);
 		principal = principal - perPaymentPrincipal;
 		loan.setLoanAmount((int)principal);
@@ -287,7 +286,6 @@ public class LoanManagementService {
 	}
 	
 	private String generateKey(String prefix) {
-//		String key = String.valueOf(System.currentTimeMillis());
 		String key = UUID.randomUUID().toString().split("-")[0];
 		return prefix+ key;
 	}
