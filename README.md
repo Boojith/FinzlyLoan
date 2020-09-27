@@ -32,3 +32,7 @@ Applicaiton will be up and running in http://localhost:8080/
 
 # Logging
 Slf4j Logging has been  implemented.Find logs in console.
+
+# Sample user details
+username: boojith22@gmail.com
+password : Boojith@1940
