@@ -1,15 +1,21 @@
-INSERT INTO  customer (customer_id,name,fathers_name,address,password,nominee,email,phone) VALUES
-  ('CUS060eab98', 'Harry Potter', 'J K Rowling','Chennai','harry@2020','Mother','harry@gmail.com',9345678094);
+INSERT INTO  customer (customer_id, address, email, fathers_name, name, nominee, password, phone) VALUES
+  ('CUSfcd29f61', 'Chennai', 'boojith22@gmail.com', 'Karthikeyan', 'Boojith', 'Mother', 'Boojith@1940', '9500376088');
   
-INSERT INTO  loan (loan_id,customer_id,loan_amount,trade_date,start_date,maturity_date,loan_duration,payment_frequency,payment_schedule,interest_rate,payment_term,projected_interest)  VALUES
-  ('FINZ3937e3cd', 'CUS4176c2f8', 2000, '21-09-1996','21-09-1996','21-03-1997',6,'Quarterly',2, 10, 'Even Principal', 200),
-  ('FINZb42ba627', 'CUS4176c2f8', 5000, '31-12-1990','31-12-1990','31-12-1991',12,'Monthly',12 ,9.5, 'Interest Only', 475),
-  ('FINZ691d8457', 'CUS060eab98', 5000, '31-12-1990','31-12-1990','31-12-1991',8,'Monthly',16 ,9.5, 'Interest Only', 475),
-  ('FINZ3f4f0951', 'CUS060eab98', 8000, '31-12-2006','31-12-2006','31-12-2008',12,'Half Yearly',14 ,9.5, 'Even Principal', 475);
+INSERT INTO  loan (loan_id, customer_id, interest_rate, loan_amount, loan_duration, maturity_date, payment_frequency, payment_schedule, payment_term, projected_interest, start_date, trade_date)  VALUES
+  ('FINZc629b67b', 'CUSfcd29f61', '10', '10000', '5', '27-09-2025', 'Yearly', '5', 'Interest Only', '3000', '27-09-2020', '27-09-2020'),
+  ('FINZ5b266059', 'CUSfcd29f61', '10', '20000', '5', '30-09-2025', 'Yearly', '5', 'Even Principal', '6000', '30-09-2020', '28-09-2020');
 
- INSERT INTO payment_schedule (payment_id,loan_id,payment_date,principal,projected_interest,payment_status,payment_amount) VALUES
-  ('PAYZ35aeed17','FINZ691d8457', '21-12-1996', 2000, 120,'PAID',2100),
-  ('PAYZ5547f524','FINZ691d8457', '21-03-1997', 1000, 100,'PROJECTED',1100),
-  ('PAYZ4f09ad25','FINZ3f4f0951', '21-03-1997', 1000, 100,'PROJECTED',1100),
-  ('PAYZ24242812','FINZ3f4f0951', '21-03-1997', 1000, 100,'PROJECTED',1100);
+ INSERT INTO payment_schedule (payment_id, loan_id, payment_amount, payment_date, payment_status, principal, projected_interest) VALUES
+  ('PAY3ed72317', 'FINZc629b67b', '400', '27-09-2024', 'PROJECTED', '0', '400'),
+  ('PAYa23c9d5f', 'FINZc629b67b', '10200', '27-09-2025', 'PROJECTED', '10000', '200'),
+  ('PAYc37603e4', 'FINZc629b67b', '600', '27-09-2023', 'PROJECTED', '0', '600'),
+  ('PAYe317fb53', 'FINZc629b67b', '1000', '27-09-2021', 'PROJECTED', '0', '1000'),
+  ('PAYfe2606d4', 'FINZc629b67b', '800', '27-09-2022', 'PROJECTED', '0', '800'),
+  ('PAY2b3d1380', 'FINZ5b266059', '6000', '30-09-2021', 'PROJECTED', '20000', '2000'),
+  ('PAY887cb4b1', 'FINZ5b266059', '4400', '30-09-2025', 'PROJECTED', '4000', '400'),
+  ('PAY9ae68076', 'FINZ5b266059', '4800', '30-09-2024', 'PROJECTED', '8000', '800'),
+  ('PAYabf0d8c7', 'FINZ5b266059', '5200', '30-09-2023', 'PROJECTED', '12000', '1200'),
+  ('PAYfb261016', 'FINZ5b266059', '5600', '30-09-2022', 'PROJECTED', '16000', '1600');
+  
+  
   
