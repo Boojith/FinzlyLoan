@@ -27,8 +27,8 @@ Import the project in IDE of you choice (Eclipse is preferred)
 
 
 # Run:
-Run application as Spring Boot Applicaiton.
-Applicaiton will be up and running in http://localhost:8080/
+Run application as Spring Boot Application.
+Application will be up and running in http://localhost:8080/
 
 # Logging
 Slf4j Logging has been  implemented.Find logs in console.
